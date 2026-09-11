@@ -39,27 +39,77 @@ jobs:
 
           chmod +x gradlew
 
-          # Bulletproof Python Script to force-inject xmlns:tools directly into the <manifest> tag
-          python3 -c '
-          import re
-          path = "app/src/main/AndroidManifest.xml"
-          try:
-              with open(path, "r", encoding="utf-8") as f:
-                  content = f.read()
-              
-              # Purana ya galat xmlns:tools hata rahe hain taaki duplicate na ho
-              content = content.replace("xmlns:tools=\"http://schemas.android.com/tools\"", "")
-              content = content.replace("xmlns:tools='\''http://schemas.android.com/tools'\''", "")
-              
-              # Seedha <manifest tag ke andar forcibly inject kar rahe hain
-              content = re.sub(r"(<manifest\b)", r"\1 xmlns:tools=\"http://schemas.android.com/tools\"", content, count=1)
-              
-              with open(path, "w", encoding="utf-8") as f:
-                  f.write(content)
-              print("Successfully force-injected xmlns:tools into <manifest> tag.")
-          except Exception as e:
-              print(f"Error updating manifest: {e}")
-          '
+          # Ultimate Fix: Creating a fresh, clean AndroidManifest.xml to avoid any parsing/merging errors
+          mkdir -p app/src/main
+          cat << 'EOF' > app/src/main/AndroidManifest.xml
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+              <uses-permission android:name="android.permission.RECORD_AUDIO" />
+              <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" tools:ignore="ProtectedPermissions" />
+              <uses-permission android:name="android.permission.BLUETOOTH" />
+              <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+              <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+              <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+              <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+              <uses-permission android:name="android.permission.CAMERA" />
+              <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
+              <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+              <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+              <application
+                  android:name=".MonaApplication"
+                  android:allowBackup="false"
+                  android:icon="@mipmap/ic_launcher"
+                  android:label="Mona"
+                  android:theme="@style/Theme.Mona"
+                  android:usesCleartextTraffic="false"
+                  tools:targetApi="31">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:theme="@style/Theme.Mona">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+
+                  <activity
+                      android:name=".SettingsActivity"
+                      android:exported="false"
+                      android:label="Mona Settings" />
+
+                  <service
+                      android:name=".services.MonaAccessibilityService"
+                      android:exported="true"
+                      android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+                      <intent-filter>
+                          <action android:name="android.accessibilityservice.AccessibilityService" />
+                      </intent-filter>
+                      <meta-data
+                          android:name="android.accessibilityservice"
+                          android:resource="@xml/accessibility_service_config" />
+                  </service>
+
+                  <service
+                      android:name=".services.MonaNotificationListenerService"
+                      android:exported="true"
+                      android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+                      <intent-filter>
+                          <action android:name="android.service.notification.NotificationListenerService" />
+                      </intent-filter>
+                  </service>
+
+              </application>
+          </manifest>
+          EOF
+          echo "Fresh AndroidManifest.xml written successfully."
 
           echo "Building APK..."
           ./gradlew assembleDebug

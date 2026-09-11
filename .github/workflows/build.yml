@@ -22,15 +22,15 @@ jobs:
             done
           fi
 
-          # Ab ye script .kts aur standard build.gradle dono ko dhoond legi
-          PROJ_DIR=$(find . \( -name "build.gradle.kts" -o -name "build.gradle" \) -not -path "*/.git/*" -exec dirname {} \; | head -n 1)
+          # Ab ye script sahi root folder dhoondne ke liye settings.gradle dhoondegi
+          PROJ_DIR=$(find . \( -name "settings.gradle.kts" -o -name "settings.gradle" \) -not -path "*/.git/*" -exec dirname {} \; | head -n 1)
           
           if [ -z "$PROJ_DIR" ]; then
-            echo "Error: build file not found anywhere!"
+            echo "Error: settings file not found anywhere!"
             exit 1
           fi
 
-          echo "Found project directory at: $PROJ_DIR"
+          echo "Found correct root project directory at: $PROJ_DIR"
           cd "$PROJ_DIR"
 
           if [ ! -f "gradlew" ]; then

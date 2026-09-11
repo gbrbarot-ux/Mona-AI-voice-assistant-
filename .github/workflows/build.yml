@@ -22,7 +22,6 @@ jobs:
             done
           fi
 
-          # Ab ye script sahi root folder dhoondne ke liye settings.gradle dhoondegi
           PROJ_DIR=$(find . \( -name "settings.gradle.kts" -o -name "settings.gradle" \) -not -path "*/.git/*" -exec dirname {} \; | head -n 1)
           
           if [ -z "$PROJ_DIR" ]; then
@@ -39,6 +38,12 @@ jobs:
           fi
 
           chmod +x gradlew
+
+          # AndroidManifest.xml print kar rahe hain taaki galti dikh jaye
+          echo "--- ANDROID MANIFEST CONTENT ---"
+          cat app/src/main/AndroidManifest.xml || echo "Manifest not found in standard path"
+          echo "--------------------------------"
+
           echo "Building APK..."
           ./gradlew assembleDebug
 

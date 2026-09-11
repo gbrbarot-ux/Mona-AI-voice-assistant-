@@ -39,10 +39,13 @@ jobs:
 
           chmod +x gradlew
 
-          # AndroidManifest.xml print kar rahe hain taaki galti dikh jaye
-          echo "--- ANDROID MANIFEST CONTENT ---"
-          cat app/src/main/AndroidManifest.xml || echo "Manifest not found in standard path"
-          echo "--------------------------------"
+          # Automatic Fix: AndroidManifest.xml mein missing tools namespace jod rahe hain
+          if [ -f "app/src/main/AndroidManifest.xml" ]; then
+            if ! grep -q "xmlns:tools" app/src/main/AndroidManifest.xml; then
+              echo "Adding missing xmlns:tools to AndroidManifest.xml..."
+              sed -i 's/<manifest /<manifest xmlns:tools="http:\/\/schemas.android.com\/tools" /g' app/src/main/AndroidManifest.xml
+            fi
+          fi
 
           echo "Building APK..."
           ./gradlew assembleDebug

@@ -39,22 +39,26 @@ jobs:
 
           chmod +x gradlew
 
+          # Robust Python Regex Script to safely inject xmlns:tools into AndroidManifest.xml
           python3 -c '
+          import re
           path = "app/src/main/AndroidManifest.xml"
           try:
               with open(path, "r") as f:
                   content = f.read()
               if "xmlns:tools" not in content:
-                  content = content.replace("<manifest ", "<manifest xmlns:tools=\"http://schemas.android.com/tools\" ", 1)
+                  content = re.sub(r"<manifest\b", "<manifest xmlns:tools=\"http://schemas.android.com/tools\"", content, count=1)
                   with open(path, "w") as f:
                       f.write(content)
-                  print("Successfully injected xmlns:tools into AndroidManifest.xml")
+                  print("Successfully injected xmlns:tools via regex into AndroidManifest.xml")
+              else:
+                  print("xmlns:tools already present")
           except Exception as e:
               print(f"Error modifying manifest: {e}")
           '
 
-          echo "Building APK with stacktrace..."
-          ./gradlew assembleDebug --stacktrace
+          echo "Building APK..."
+          ./gradlew assembleDebug
 
       - name: Upload Generated APK
         uses: actions/upload-artifact@v4

@@ -39,7 +39,7 @@ jobs:
 
           chmod +x gradlew
 
-          # Advanced Python Manifest Fixer & Inspector
+          # Bulletproof Python Script to force-inject xmlns:tools directly into the <manifest> tag
           python3 -c '
           import re
           path = "app/src/main/AndroidManifest.xml"
@@ -47,16 +47,16 @@ jobs:
               with open(path, "r", encoding="utf-8") as f:
                   content = f.read()
               
-              # Ensure xmlns:tools is present in the manifest tag
-              if "xmlns:tools" not in content:
-                  content = re.sub(r"<manifest\b", "<manifest xmlns:tools=\"http://schemas.android.com/tools\"", content, count=1)
-                  print("Injected xmlns:tools successfully.")
-              else:
-                  print("xmlns:tools already present.")
-
+              # Purana ya galat xmlns:tools hata rahe hain taaki duplicate na ho
+              content = content.replace("xmlns:tools=\"http://schemas.android.com/tools\"", "")
+              content = content.replace("xmlns:tools='\''http://schemas.android.com/tools'\''", "")
+              
+              # Seedha <manifest tag ke andar forcibly inject kar rahe hain
+              content = re.sub(r"(<manifest\b)", r"\1 xmlns:tools=\"http://schemas.android.com/tools\"", content, count=1)
+              
               with open(path, "w", encoding="utf-8") as f:
                   f.write(content)
-              print("AndroidManifest.xml written successfully.")
+              print("Successfully force-injected xmlns:tools into <manifest> tag.")
           except Exception as e:
               print(f"Error updating manifest: {e}")
           '

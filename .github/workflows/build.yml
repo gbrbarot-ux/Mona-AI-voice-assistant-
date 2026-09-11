@@ -1,0 +1,48 @@
+name: Build Mona APK Automatically
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'microsoft'
+          java-version: '17'
+
+      - name: Find Project and Build APK
+        run: |
+          echo "Looking for project files..."
+          if ls *.zip 1> /dev/null 2>&1; then
+            for z in *.zip; do
+              unzip -o "$z"
+            done
+          fi
+
+          PROJ_DIR=$(find . -name "build.gradle" -not -path "*/.git/*" -exec dirname {} \; | head -n 1)
+          
+          if [ -z "$PROJ_DIR" ]; then
+            echo "Error: build.gradle not found anywhere!"
+            exit 1
+          fi
+
+          echo "Found project directory at: $PROJ_DIR"
+          cd "$PROJ_DIR"
+
+          if [ ! -f "gradlew" ]; then
+            echo "Generating Gradle Wrapper..."
+            gradle wrapper
+          fi
+
+          chmod +x gradlew
+          echo "Building APK..."
+          ./gradlew assembleDebug
+
+      - name: Upload Generated APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mona-Voice-Assistant-APK
+          path: '**/app/build/outputs/apk/debug/*.apk'

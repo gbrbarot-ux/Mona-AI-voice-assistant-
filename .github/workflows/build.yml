@@ -39,7 +39,6 @@ jobs:
 
           chmod +x gradlew
 
-          # Python script se AndroidManifest.xml mein safely xmlns:tools jod rahe hain
           python3 -c '
           path = "app/src/main/AndroidManifest.xml"
           try:
@@ -50,14 +49,12 @@ jobs:
                   with open(path, "w") as f:
                       f.write(content)
                   print("Successfully injected xmlns:tools into AndroidManifest.xml")
-              else:
-                  print("xmlns:tools already present")
           except Exception as e:
               print(f"Error modifying manifest: {e}")
           '
 
-          echo "Building APK..."
-          ./gradlew assembleDebug
+          echo "Building APK with stacktrace..."
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload Generated APK
         uses: actions/upload-artifact@v4

@@ -22,10 +22,11 @@ jobs:
             done
           fi
 
-          PROJ_DIR=$(find . -name "build.gradle" -not -path "*/.git/*" -exec dirname {} \; | head -n 1)
+          # Ab ye script .kts aur standard build.gradle dono ko dhoond legi
+          PROJ_DIR=$(find . \( -name "build.gradle.kts" -o -name "build.gradle" \) -not -path "*/.git/*" -exec dirname {} \; | head -n 1)
           
           if [ -z "$PROJ_DIR" ]; then
-            echo "Error: build.gradle not found anywhere!"
+            echo "Error: build file not found anywhere!"
             exit 1
           fi
 
